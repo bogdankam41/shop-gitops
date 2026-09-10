@@ -1,0 +1,6 @@
+replicaCount: 3
+resources:
+  limits:
+    cpu: 500m
+ingress:
+  host: shop.local

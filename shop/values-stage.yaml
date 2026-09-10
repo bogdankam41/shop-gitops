@@ -1,0 +1,6 @@
+replicaCount: 2
+resources:
+  limits:
+    cpu: 200m
+ingress:
+  host: stage.shop.local
