@@ -3,4 +3,4 @@ resources:
   limits:
     cpu: 500m
 ingress:
-  host: shop.local
+  host: null
