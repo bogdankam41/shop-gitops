@@ -7,4 +7,4 @@ ingress:
 
 networkPolicy:
   enabled: true
-  denyEgress: false
+  denyEgress: true
