@@ -4,3 +4,7 @@ resources:
     cpu: 500m
 ingress:
   host: shop.local
+
+networkPolicy:
+  enabled: true
+  denyEgress: false

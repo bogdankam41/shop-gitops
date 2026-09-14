@@ -5,3 +5,7 @@ image:
 resources: {}
 ingress:
   host: dev.shop.local
+
+networkPolicy:
+  enabled: false
+  denyEgress: false
