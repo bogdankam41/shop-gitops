@@ -18,6 +18,10 @@ spec:
         app.kubernetes.io/name: {{ .Chart.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      {{- if .Values.ghcrPull.sealed }}
+      imagePullSecrets:
+        - name: ghcr-pull
+      {{- end }}
       containers:
       - name: app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

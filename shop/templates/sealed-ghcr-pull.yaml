@@ -1,0 +1,16 @@
+{{- if .Values.ghcrPull.sealed }}
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ghcr-pull
+  namespace: shop-prod
+spec:
+  encryptedData:
+    .dockerconfigjson: AgAiyoMDQCCJeVRd1PCP3wqEgeRDzJQjh80UC2CDsEW+J3TtMZktW6zkEXEUG4uW4ekdrA1dbEFYTuNCUodJOtec3kEZgDBholGhgXiPeb0zkgpSpi3AMFwZpIjtcqSHSeLg2LtHokVrVz9pKioKi1KXKUqa/ItLnnIbM+k0OpHposIExNGwUIlQzT2Zh2UNJsDAa2UDA1iUmcLKxDpHn6/pMoKFxwqnNSkMtzWur/diddVf+iFT3XAR5B/0SR2vUa0kliVLawWvRlja9umrHJOJOez8X9wzD0bZJn3rLQhNPG1GT8oZNNPv12SRkhjfZE09HJSkXcE2jNcUtWz1A1OAzKNNKAMb5GkRAX7GdBeRgcf5+JZBghiIGA3Do+vsjnCjX9P0NIWOJP/IUOtYOEFe/02/kGhEDXn5RYIzrQezir7TOEF6Ch427wRfg6AwZsI1Bu/4j9q2xbpKhzaEyMi8obOEicIB/6dhe6BHp9GLBaYNSaK3dYxc2qNy2KtCgxY6IcLPq3OllsaxshbazpghMS/uGhbXN9Y3BnUgSKgxDceHY50CK7o5vbE3lHIuqFbWJdWPjDjNMZvWIZW0FLsoV7LM6uOjdanzMyOiRRPX2iM7S1YQJ5W9KeJUXU1s6zSWYZ6M9LNUr98jgfYQt3W8tQ/trGOLorUmE2ac0cY02LEef95D4aCsoCFfbbK4lDr+hqpJH6vjLQ2BMXDGvYsgiP1iOfZY023kk0kx4nnoGbdxx5NOwFvy1Nf3MgTkeGI0NXlnlDMb2vMS58EhePdwznl9JULZG4bq8Qxt2t6VBkA+7Cd0Nti0SdqGz2Pu2rpxH6XSv468CxuPH6IkA+EIVDh1slZR2a6FgZvcBKwVpe32a5qJzjCrL5n03+iuGrVcArP8/O1Co9Sot7WGvtkyH8WtxTqI7iYlpkUpG6d26jnK9PkAeLx2
+  template:
+    metadata:
+      name: ghcr-pull
+      namespace: shop-prod
+    type: kubernetes.io/dockerconfigjson
+{{- end }}

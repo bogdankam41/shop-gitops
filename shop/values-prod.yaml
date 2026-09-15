@@ -8,3 +8,6 @@ ingress:
 networkPolicy:
   enabled: true
   denyEgress: true
+
+ghcrPull:
+  sealed: true
