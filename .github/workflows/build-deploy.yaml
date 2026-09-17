@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write
   packages: write
-  id-token: write          # для keyless-подписи по OIDC
+  id-token: write
 
 jobs:
   build:
@@ -32,11 +32,10 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/shop-app:${{ github.sha }}
 
       - name: Скан образа (валим сборку на CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/shop-app@${{ steps.build.outputs.digest }}
-          severity: CRITICAL
-          exit-code: '1'
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy image --severity CRITICAL --exit-code 1 --no-progress \
+            ghcr.io/${{ github.repository_owner }}/shop-app@${{ steps.build.outputs.digest }}
 
       - name: Установить cosign
         uses: sigstore/cosign-installer@v3
