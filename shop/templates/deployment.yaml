@@ -19,6 +19,9 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       {{- if .Values.ghcrPull.sealed }}
       imagePullSecrets:
         - name: ghcr-pull
@@ -26,6 +29,8 @@ spec:
       containers:
       - name: app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        securityContext:
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 80
         readinessProbe:
