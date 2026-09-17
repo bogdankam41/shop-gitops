@@ -18,6 +18,7 @@ spec:
         app.kubernetes.io/name: {{ .Chart.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      automountServiceAccountToken: false
       {{- if .Values.ghcrPull.sealed }}
       imagePullSecrets:
         - name: ghcr-pull
