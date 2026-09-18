@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: ghcr.io/bogdankam41/shop-app
-  tag: 8ce464f8a6fb2fb22765d1eb094849a92f9dc5b3
+  tag: 75025989b15343524ea45493abcfb2d85ff3ccb0
 resources: {}
 ingress:
   host: dev.shop.local
