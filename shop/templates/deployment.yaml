@@ -20,6 +20,8 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
         seccompProfile:
           type: RuntimeDefault
       {{- if .Values.ghcrPull.sealed }}
@@ -31,10 +33,23 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         readinessProbe:
-          httpGet: { path: /, port: 80 }
+          httpGet: { path: /, port: 8080 }
           periodSeconds: 5
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /var/cache/nginx
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}

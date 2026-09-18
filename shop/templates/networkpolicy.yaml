@@ -29,7 +29,7 @@ spec:
               app.kubernetes.io/name: traefik
       ports:
         - protocol: TCP
-          port: 80
+          port: 8080
 {{- if .Values.networkPolicy.denyEgress }}
 ---
 apiVersion: networking.k8s.io/v1
