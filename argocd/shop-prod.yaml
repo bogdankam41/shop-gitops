@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shop-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/bogdankam41/shop-gitops.git
+    targetRevision: gitops-appofapps      # в проде: main
+    path: shop
+    helm:
+      valueFiles: [values-prod.yaml]
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shop-prod
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/audit: restricted
