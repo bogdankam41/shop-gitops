@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/bogdankam41/shop-gitops.git
-    targetRevision: gitops-appofapps      # в проде: main
+    targetRevision: main
     path: argocd                          # ← папка с дочерними Application'ами
     directory:
       recurse: true
