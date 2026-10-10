@@ -4,13 +4,32 @@ on:
   push:
     branches: [main]
     paths: ['app/**']
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
   packages: write
 
 jobs:
+  test:                                        # ← НОВАЯ джоба, идёт первой
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Линт Dockerfile (hadolint)
+        run: docker run --rm -i hadolint/hadolint < app/Dockerfile
+      - name: Установить helm (офиц. скрипт, не угадываем тег action)
+        run: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - name: Линт и рендер чарта по всем окружениям
+        run: |
+          helm lint shop -f shop/values-prod.yaml
+          for e in dev stage prod; do
+            helm template shop -f shop/values-$e.yaml >/dev/null
+          done
+
   build:
+    needs: test                              # ← ворота: ждёт зелёный test
+    if: github.event_name == 'push'          # ← на PR не собираем, только тестируем
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,10 +66,10 @@ jobs:
           cosign sign --key env://COSIGN_PRIVATE_KEY --tlog-upload=false --yes \
             ghcr.io/${{ github.repository_owner }}/shop-app@${{ steps.build.outputs.digest }}
 
-      - name: Обновить тег в чарте
+      - name: Промоушен в DEV (bump тега только у dev)
         run: |
-          sed -i "s|^  tag: .*|  tag: ${{ github.sha }}|" shop/values.yaml
+          sed -i "s|^  tag: .*|  tag: ${{ github.sha }}|" shop/values-dev.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "ci: образ ${{ github.sha }} [skip ci]"
+          git commit -am "ci(dev): образ ${{ github.sha }} [skip ci]"
           git push
