@@ -1,7 +1,6 @@
 replicaCount: 1
 image:
   repository: ghcr.io/bogdankam41/shop-app
-  tag: 75025989b15343524ea45493abcfb2d85ff3ccb0
 resources:
   requests:
     cpu: 25m
