@@ -9,10 +9,11 @@ resources:
     memory: 64Mi
 ingress:
   host: dev.shop.local
-
 networkPolicy:
   enabled: false
   denyEgress: false
-
 ghcrPull:
   sealed: false
+pdb:
+  enabled: true
+  maxUnavailable: 1
