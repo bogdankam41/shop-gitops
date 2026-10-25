@@ -16,3 +16,11 @@ ghcrPull:
 
 image:
   tag: 75025989b15343524ea45493abcfb2d85ff3ccb0
+
+resourceQuota:
+  hard:
+    requests.cpu: "500m"
+    requests.memory: 512Mi
+    limits.cpu: "4"
+    limits.memory: 768Mi
+    pods: "12"

@@ -17,3 +17,16 @@ ghcrPull:
 pdb:
   enabled: true
   maxUnavailable: 1
+limitRange:
+  enabled: true
+  default: {cpu: 500m, memory: 64Mi}
+  defaultRequest: {cpu: 25m, memory: 32Mi}
+  max: {cpu: "1", memory: 128Mi}
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "200m"
+    requests.memory: 256Mi
+    limits.cpu: "2"
+    limits.memory: 256Mi
+    pods: "6"
