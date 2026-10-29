@@ -1,0 +1,32 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: global-am
+  namespace: monitoring
+spec:
+  route:
+    receiver: telegram
+    groupBy: ["namespace", "alertname"]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 4h
+    routes:
+      - receiver: deadmansswitch
+        matchers:
+          - name: alertname
+            value: Watchdog
+        groupWait: 0s
+        groupInterval: 5m
+        repeatInterval: 5m
+  receivers:
+    - name: telegram
+      telegramConfigs:
+        - botToken:
+            name: telegram-bot
+            key: token
+          chatID: 159973191
+          parseMode: HTML
+          sendResolved: true
+    - name: deadmansswitch
+      webhookConfigs:
+        - url: http://192.168.1.10:9099/
