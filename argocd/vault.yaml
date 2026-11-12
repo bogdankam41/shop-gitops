@@ -1,0 +1,62 @@
+# Vault — источник секретов для лабы КХД (lab-data).
+# Raft integrated storage, 1 нода (лаба; в проде 3 или 5 — кворум Raft).
+# Unseal ручной (Shamir), init и настройка — lab/vault-bootstrap.sh, ключи в git не попадают.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://helm.releases.hashicorp.com
+    chart: vault
+    targetRevision: 0.34.1
+    helm:
+      valuesObject:
+        injector:
+          enabled: false            # секреты доставляет External Secrets, не sidecar-инжектор
+        ui:
+          enabled: true
+        server:
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { memory: 256Mi }
+          # мастер k3s и так на пределе по памяти — только воркеры
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: node-role.kubernetes.io/control-plane
+                        operator: DoesNotExist
+          dataStorage:
+            enabled: true
+            size: 1Gi
+            storageClass: longhorn      # 3 реплики Longhorn: у Raft из 1 ноды своей репликации нет
+          auditStorage:
+            enabled: false              # аудит пишем в stdout → Alloy → Loki
+          ha:
+            enabled: true
+            replicas: 1
+            raft:
+              enabled: true
+              setNodeId: true
+              config: |
+                ui = true
+                listener "tcp" {
+                  address         = "[::]:8200"
+                  cluster_address = "[::]:8201"
+                  tls_disable     = 1   # лаба: трафик внутри кластера; в проде TLS от cert-manager
+                }
+                storage "raft" {
+                  path = "/vault/data"
+                }
+                service_registration "kubernetes" {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - CreateNamespace=true

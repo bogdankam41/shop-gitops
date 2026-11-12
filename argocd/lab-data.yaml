@@ -1,0 +1,32 @@
+# Лаба КХД: секреты из Vault через ESO → PostgreSQL на CloudNativePG
+# с архивом WAL и бэкапами в S3 (SeaweedFS). Ресурсы — infra/lab-data.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lab-data
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/bogdankam41/shop-gitops.git
+    path: infra/lab-data
+    targetRevision: main
+    directory:
+      exclude: README.md
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lab-data
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: baseline
+        pod-security.kubernetes.io/warn: restricted
+    syncOptions:
+      - CreateNamespace=true
+      # CRD приходят из соседних Application (ESO, CNPG): при первом
+      # синке их может ещё не быть — не валим dry-run, а повторяем.
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 10
+      backoff: { duration: 30s, factor: 2, maxDuration: 5m }
