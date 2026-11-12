@@ -1,0 +1,45 @@
+# Учебное восстановление pg-lab на момент времени (PITR) в ОТДЕЛЬНЫЙ кластер.
+# Не синкается Argo CD (лежит вне infra/), применяется руками:
+#
+#   sed "s/__TARGET__/2026-11-12T17:11:00Z/" lab/pitr-restore.yaml | kubectl apply -f -
+#   kubectl -n lab-data delete cluster pg-lab-restore     # после проверки
+#
+# Восстановление идёт рядом с живым кластером: сверили данные → перенесли
+# нужное (pg_dump таблицы) или переключили приложение. Архиватор WAL у
+# восстановленного кластера НЕ включён — иначе он начнёт писать в тот же путь
+# и испортит архив исходного кластера.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-lab-restore
+  namespace: lab-data
+spec:
+  instances: 1
+  storage:
+    size: 1Gi
+    storageClass: longhorn-r1
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 384Mi }
+  postgresql:
+    parameters:
+      shared_buffers: 64MB
+  bootstrap:
+    recovery:
+      source: pg-lab-archive
+      recoveryTarget:
+        targetTime: "__TARGET__"
+  externalClusters:
+    - name: pg-lab-archive
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: seaweedfs
+          serverName: pg-lab            # чей архив читаем
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
