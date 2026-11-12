@@ -1,0 +1,74 @@
+# CloudNativePG: оператор + плагин Barman Cloud (CNPG-I).
+# Встроенный barmanObjectStore в Cluster объявлен устаревшим с CNPG 1.26 —
+# бэкапы и архив WAL делает плагин. Плагин обязан жить в namespace оператора
+# и требует cert-manager (mTLS между оператором и плагином).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cnpg-operator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://cloudnative-pg.github.io/charts
+    chart: cloudnative-pg
+    targetRevision: 0.29.1
+    helm:
+      valuesObject:
+        resources:
+          requests: { cpu: 20m, memory: 64Mi }
+          limits: { memory: 192Mi }
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: DoesNotExist
+        monitoring:
+          podMonitorEnabled: true
+          grafanaDashboard:
+            create: true            # ConfigMap с дашбордом подхватывает sidecar Grafana
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cnpg-system
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cnpg-barman-plugin
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://cloudnative-pg.github.io/charts
+    chart: plugin-barman-cloud
+    targetRevision: 0.9.0
+    helm:
+      valuesObject:
+        resources:
+          requests: { cpu: 10m, memory: 48Mi }
+          limits: { memory: 128Mi }
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: DoesNotExist
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cnpg-system
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:                          # ждёт CRD и вебхук оператора
+      limit: 10
+      backoff: { duration: 15s, factor: 2, maxDuration: 5m }
