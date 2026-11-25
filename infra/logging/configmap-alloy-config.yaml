@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  config.alloy: "discovery.kubernetes \"pods\" {\n  role = \"pod\"\n}\n\ndiscovery.relabel\
+    \ \"pod_logs\" {\n  targets = discovery.kubernetes.pods.targets\n\n  rule {\n\
+    \    source_labels = [\"__meta_kubernetes_namespace\"]\n    target_label  = \"\
+    namespace\"\n  }\n  rule {\n    source_labels = [\"__meta_kubernetes_pod_name\"\
+    ]\n    target_label  = \"pod\"\n  }\n  rule {\n    source_labels = [\"__meta_kubernetes_pod_container_name\"\
+    ]\n    target_label  = \"container\"\n  }\n  rule {\n    source_labels = [\"__meta_kubernetes_pod_uid\"\
+    , \"__meta_kubernetes_pod_container_name\"]\n    separator     = \"/\"\n    action\
+    \        = \"replace\"\n    target_label  = \"__path__\"\n    replacement   =\
+    \ \"/var/log/pods/*$1/*.log\"\n  }\n}\n\nlocal.file_match \"pod_logs\" {\n  path_targets\
+    \ = discovery.relabel.pod_logs.output\n}\n\nloki.source.file \"pod_logs\" {\n\
+    \  targets    = local.file_match.pod_logs.targets\n  forward_to = [loki.process.cri.receiver]\n\
+    }\n\nloki.process \"cri\" {\n  stage.cri {}\n  forward_to = [loki.write.default.receiver]\n\
+    }\n\nloki.write \"default\" {\n  endpoint {\n    url = \"http://loki.logging.svc:3100/loki/api/v1/push\"\
+    \n  }\n}\n"
+kind: ConfigMap
+metadata:
+  name: alloy-config
+  namespace: logging
